@@ -3,3 +3,8 @@ language: go
 go:
         - 1.5
         - tip
+
+before_install:
+        - pip install codecov
+after_success:
+        - codecov
