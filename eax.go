@@ -18,9 +18,10 @@ import (
 	"bytes"
 	"crypto/cipher"
 	"fmt"
-	dcmac "github.com/dchest/cmac"
 	"hash"
 	"io"
+
+	dcmac "github.com/dchest/cmac"
 )
 
 // An EAXTagError is returned when the message has failed to authenticate,
@@ -255,8 +256,14 @@ func (x *eaxDecrypter) checkTag() error {
 }
 
 func (x *eaxDecrypter) Read(p []byte) (n int, err error) {
+	if x.ctr == nil {
+		return 0, io.EOF
+	}
+
 	n, err = x.ctr.Read(p)
 	if n == 0 && err == nil {
+		err = x.checkTag()
+	} else if n == 0 && err == io.EOF {
 		err = x.checkTag()
 	}
 	return n, err
